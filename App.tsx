@@ -4,37 +4,52 @@ import { Header } from './components/Header';
 import { RSVPForm } from './components/RSVPForm';
 import { AttendeeList } from './components/AttendeeList';
 import { TourAssistant } from './components/TourAssistant';
+import { SyncSettings } from './components/SyncSettings';
 import { Attendee } from './types';
 import { TOUR_DETAILS, SYNC_CONFIG } from './constants';
 import { MapPin, RefreshCw, AlertCircle, ShieldCheck, Globe } from 'lucide-react';
-import { dbService } from './services/dbService';
+import { dbService, DbConfig } from './services/dbService';
 
 const App: React.FC = () => {
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Manage database configuration state, initializing from localStorage or constants
+  const [dbConfig, setDbConfig] = useState<DbConfig>(() => {
+    const saved = localStorage.getItem('pva-bourbon-db-config');
+    if (saved) return JSON.parse(saved);
+    return { 
+      url: SYNC_CONFIG.url || '', 
+      enabled: SYNC_CONFIG.enabled 
+    };
+  });
 
-  const isCloudEnabled = !!SYNC_CONFIG.url && SYNC_CONFIG.enabled;
+  const isCloudEnabled = !!dbConfig.url && dbConfig.enabled;
 
   const loadData = useCallback(async () => {
     if (!isCloudEnabled) {
       const saved = localStorage.getItem('pva-bourbon-tour-rsvps');
       if (saved) setAttendees(JSON.parse(saved));
+      setIsSyncing(false);
       return;
     }
 
     setIsSyncing(true);
     try {
-      const cloudData = await dbService.fetchAttendees(SYNC_CONFIG);
+      const cloudData = await dbService.fetchAttendees(dbConfig);
       setAttendees(cloudData);
       setError(null);
     } catch (e) {
       console.error("Load failed", e);
       setError("Sync connectivity issue.");
+      // Fallback to local if cloud fails
+      const saved = localStorage.getItem('pva-bourbon-tour-rsvps');
+      if (saved) setAttendees(JSON.parse(saved));
     } finally {
       setIsSyncing(false);
     }
-  }, [isCloudEnabled]);
+  }, [isCloudEnabled, dbConfig]);
 
   // Initial load
   useEffect(() => {
@@ -56,7 +71,7 @@ const App: React.FC = () => {
     if (isCloudEnabled) {
       setIsSyncing(true);
       try {
-        await dbService.saveAttendee(SYNC_CONFIG, newAttendee);
+        await dbService.saveAttendee(dbConfig, newAttendee);
         // Add locally for instant UI feedback
         setAttendees(prev => [newAttendee, ...prev]);
         // Refresh from sheet after a short delay to confirm
@@ -64,6 +79,10 @@ const App: React.FC = () => {
       } catch (e) {
         console.error("Cloud save failed", e);
         setError("Error saving to master list.");
+        // Fallback save locally
+        const updated = [newAttendee, ...attendees];
+        setAttendees(updated);
+        localStorage.setItem('pva-bourbon-tour-rsvps', JSON.stringify(updated));
       } finally {
         setIsSyncing(false);
       }
@@ -74,12 +93,17 @@ const App: React.FC = () => {
     }
   };
 
+  const updateConfig = (newConfig: DbConfig) => {
+    setDbConfig(newConfig);
+    localStorage.setItem('pva-bourbon-db-config', JSON.stringify(newConfig));
+  };
+
   const totalGuests = attendees.reduce((acc, curr) => acc + curr.guests, 0);
   const remainingSeats = TOUR_DETAILS.maxCapacity - totalGuests;
 
   return (
     <div className="min-h-screen text-amber-50 pb-20">
-      {/* Global Status Bar */}
+      {/* Global Status & Settings Bar */}
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-end items-center gap-4 relative z-50">
         {error && (
           <div className="flex items-center gap-2 text-red-400 text-[10px] font-bold uppercase bg-red-500/10 px-3 py-1.5 rounded-full border border-red-500/30">
@@ -93,6 +117,7 @@ const App: React.FC = () => {
           {isSyncing ? <RefreshCw size={12} className="animate-spin" /> : (isCloudEnabled ? <ShieldCheck size={12} /> : <Globe size={12} />)}
           {isCloudEnabled ? 'Live Master List' : 'Local Offline Mode'}
         </div>
+        <SyncSettings config={dbConfig} onSave={updateConfig} />
       </div>
 
       <Header />
