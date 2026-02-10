@@ -5,22 +5,37 @@ export const TOUR_DETAILS = {
   maxCapacity: 22,
   stops: [
     {
-      name: "Buffalo Trace",
-      highlight: "America's Oldest Heritage",
-      description: "Home of Pappy Van Winkle and Blanton's. The best stop for bourbon history and the 'hum' for rare bottles."
+      name: "Embassy Suites @ Rivercenter",
+      highlight: "8:30am Departure",
+      description: "Meet at the main entrance for a prompt 8:30am departure. Our luxury 22-passenger shuttle will be ready for boarding."
+    },
+    {
+      name: "Four Roses Distillery",
+      highlight: "10:00am - 11:00am",
+      description: "Enjoy an exclusive private tasting session at the historic Four Roses distillery, featuring their unique 10-recipe bourbon process."
+    },
+    {
+      name: "Lunch at Ricardo's",
+      highlight: "11:30am - 12:30pm",
+      description: "A scheduled break for a premium lunch at Ricardo's, allowing the group to relax and prepare for the afternoon tastings."
     },
     {
       name: "Woodford Reserve",
-      highlight: "The Scenic Standard",
-      description: "Located in the heart of Versailles horse country, famous for photogenic copper pot stills and upscale atmosphere."
+      highlight: "1:00pm - 2:30pm",
+      description: "A private tour and tasting at the picturesque Woodford Reserve, the crown jewel of Kentucky's bourbon trail."
     },
     {
       name: "Castle & Key",
-      highlight: "The Architectural Gem",
-      description: "Meticulously restored 113-acre estate featuring a limestone castle, sunken European-style gardens, and a springhouse source of limestone water."
+      highlight: "2:45pm - 3:30pm",
+      description: "Curated cocktails followed by a self-guided walk of the historic distillery's breathtaking castle grounds and gardens."
+    },
+    {
+      name: "Embassy Suites @ Rivercenter",
+      highlight: "5:00pm Return",
+      description: "The shuttle concludes the day back at the hotel, allowing guests to enjoy their evening in the Rivercenter area."
     }
   ],
-  logistics: "Relax and enjoy the ride through scenic horse country in our dedicated 22-Passenger Shuttle Transportation. Lunch is included at a local stop (TBD).",
+  logistics: "Luxury 22-passenger transportation departs from Embassy Suites @ Rivercenter at 8:30am and returns at 5:00pm. All tastings, tours, and lunch are included.",
   contact: "JBailey@Spocgrid.com"
 };
 
@@ -36,13 +51,16 @@ export const SYNC_CONFIG = {
 
 export const SYSTEM_INSTRUCTION = `
 You are the PVA Bourbon Tour 2026 Assistant. Your goal is to help guests understand the details of the upcoming tour.
-Details:
-- Event: PVA Bourbon Tour 2026: The Ultimate Kentucky Triple Threat.
-- Date: Saturday, February 21, 2026.
-- Stops: Buffalo Trace, Woodford Reserve, and Castle & Key.
-- Transportation: Dedicated 22-passenger shuttle.
-- Inclusions: Transportation, tours, and lunch.
+Detailed Schedule:
+- 8:30am: Depart Embassy Suites @ Rivercenter.
+- 10:00am - 11:00am: Four Roses Private Tasting.
+- 11:30am - 12:30pm: Lunch at Ricardo's.
+- 1:00pm - 2:30pm: Woodford Private Tour/Tasting.
+- 2:45pm - 3:30pm: Castle & Key Cocktails with self-guided walk of the grounds.
+- 5:00pm: Return to Embassy Suites @ Rivercenter.
 
+Pickup/Drop-off Location: Embassy Suites @ Rivercenter.
+Transportation: Dedicated 22-passenger shuttle.
 RSVP Fields: Name, Email, Company, Title, Party Size, and Dietary Notes.
-Be polite, sophisticated, and helpful.
+Be polite, sophisticated, and helpful. Mention J. Bailey as the contact if guests have complex questions.
 `;

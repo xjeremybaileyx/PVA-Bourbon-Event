@@ -146,16 +146,25 @@ const App: React.FC = () => {
               The Itinerary
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {TOUR_DETAILS.stops.map((stop, idx) => (
-                <div key={idx} className="relative group">
-                  <div className="text-amber-500 font-bold text-xs uppercase mb-2">Stop 0{idx + 1}</div>
-                  <h3 className="text-lg font-bold text-amber-100 mb-1">{stop.name}</h3>
-                  <div className="text-amber-300/80 text-sm font-serif italic mb-3">{stop.highlight}</div>
-                  <p className="text-sm text-amber-100/60 leading-relaxed">
-                    {stop.description}
-                  </p>
-                </div>
-              ))}
+              {TOUR_DETAILS.stops.map((stop, idx) => {
+                // Check if this is a stop (middle items) or departure/return (ends)
+                const isFirst = idx === 0;
+                const isLast = idx === TOUR_DETAILS.stops.length - 1;
+                const isNumberedStop = !isFirst && !isLast;
+
+                return (
+                  <div key={idx} className="relative group">
+                    <div className="text-amber-500 font-bold text-xs uppercase mb-2">
+                      {isNumberedStop ? `Stop 0${idx}` : (isFirst ? 'Departure' : 'Arrival')}
+                    </div>
+                    <h3 className="text-lg font-bold text-amber-100 mb-1">{stop.name}</h3>
+                    <div className="text-amber-300/80 text-sm font-serif italic mb-3">{stop.highlight}</div>
+                    <p className="text-sm text-amber-100/60 leading-relaxed">
+                      {stop.description}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </section>
         </div>
