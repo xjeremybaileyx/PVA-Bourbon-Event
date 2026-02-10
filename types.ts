@@ -3,6 +3,8 @@ export interface Attendee {
   id: string;
   name: string;
   email: string;
+  company: string;
+  title: string;
   guests: number;
   dietaryNotes?: string;
   timestamp: number;

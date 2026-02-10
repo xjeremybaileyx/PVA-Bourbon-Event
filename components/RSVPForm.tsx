@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { RSVPStatus, Attendee } from '../types';
-import { User, Mail, Users, Utensils, Send, CheckCircle } from 'lucide-react';
+import { User, Mail, Users, Utensils, Send, CheckCircle, Building2, Briefcase } from 'lucide-react';
 
 interface RSVPFormProps {
   onRSVP: (attendee: Attendee) => void;
@@ -13,6 +13,8 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ onRSVP, remainingSeats }) =>
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    company: '',
+    title: '',
     guests: 1,
     dietary: ''
   });
@@ -26,12 +28,14 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ onRSVP, remainingSeats }) =>
 
     setStatus(RSVPStatus.SUBMITTING);
     
-    // Simulate API call
+    // Simulate slight delay for aesthetic feel
     setTimeout(() => {
       const newAttendee: Attendee = {
         id: Math.random().toString(36).substr(2, 9),
         name: formData.name,
         email: formData.email,
+        company: formData.company,
+        title: formData.title,
         guests: formData.guests,
         dietaryNotes: formData.dietary,
         timestamp: Date.now()
@@ -39,8 +43,8 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ onRSVP, remainingSeats }) =>
       
       onRSVP(newAttendee);
       setStatus(RSVPStatus.SUCCESS);
-      setFormData({ name: '', email: '', guests: 1, dietary: '' });
-    }, 1500);
+      setFormData({ name: '', email: '', company: '', title: '', guests: 1, dietary: '' });
+    }, 1200);
   };
 
   if (status === RSVPStatus.SUCCESS) {
@@ -85,21 +89,20 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ onRSVP, remainingSeats }) =>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-1">
-            <label className="text-sm font-bold text-amber-900 flex items-center gap-2">
-              <User size={16} /> Full Name
-            </label>
-            <input 
-              required
-              type="text"
-              value={formData.name}
-              onChange={e => setFormData({...formData, name: e.target.value})}
-              className="w-full bg-white/50 border-2 border-amber-900/10 rounded-lg p-3 focus:outline-none focus:border-amber-600 transition-colors text-amber-900 placeholder-amber-900/40"
-              placeholder="e.g. John Doe"
-            />
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-1">
+              <label className="text-sm font-bold text-amber-900 flex items-center gap-2">
+                <User size={16} /> Full Name
+              </label>
+              <input 
+                required
+                type="text"
+                value={formData.name}
+                onChange={e => setFormData({...formData, name: e.target.value})}
+                className="w-full bg-white/50 border-2 border-amber-900/10 rounded-lg p-3 focus:outline-none focus:border-amber-600 transition-colors text-amber-900 placeholder-amber-900/40"
+                placeholder="e.g. John Doe"
+              />
+            </div>
             <div className="space-y-1">
               <label className="text-sm font-bold text-amber-900 flex items-center gap-2">
                 <Mail size={16} /> Email Address
@@ -113,6 +116,38 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ onRSVP, remainingSeats }) =>
                 placeholder="john@example.com"
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-1">
+              <label className="text-sm font-bold text-amber-900 flex items-center gap-2">
+                <Building2 size={16} /> Company
+              </label>
+              <input 
+                required
+                type="text"
+                value={formData.company}
+                onChange={e => setFormData({...formData, company: e.target.value})}
+                className="w-full bg-white/50 border-2 border-amber-900/10 rounded-lg p-3 focus:outline-none focus:border-amber-600 transition-colors text-amber-900 placeholder-amber-900/40"
+                placeholder="Your Company"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-bold text-amber-900 flex items-center gap-2">
+                <Briefcase size={16} /> Professional Title
+              </label>
+              <input 
+                required
+                type="text"
+                value={formData.title}
+                onChange={e => setFormData({...formData, title: e.target.value})}
+                className="w-full bg-white/50 border-2 border-amber-900/10 rounded-lg p-3 focus:outline-none focus:border-amber-600 transition-colors text-amber-900 placeholder-amber-900/40"
+                placeholder="Your Title"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1">
               <label className="text-sm font-bold text-amber-900 flex items-center gap-2">
                 <Users size={16} /> Total in Party
@@ -129,19 +164,18 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ onRSVP, remainingSeats }) =>
                 ))}
               </select>
             </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-sm font-bold text-amber-900 flex items-center gap-2">
-              <Utensils size={16} /> Dietary Restrictions (Optional)
-            </label>
-            <textarea 
-              value={formData.dietary}
-              onChange={e => setFormData({...formData, dietary: e.target.value})}
-              rows={2}
-              className="w-full bg-white/50 border-2 border-amber-900/10 rounded-lg p-3 focus:outline-none focus:border-amber-600 transition-colors resize-none text-amber-900 placeholder-amber-900/40"
-              placeholder="e.g. Gluten-free, Vegetarian, Nut allergies"
-            />
+            <div className="space-y-1">
+              <label className="text-sm font-bold text-amber-900 flex items-center gap-2">
+                <Utensils size={16} /> Dietary Notes
+              </label>
+              <input 
+                type="text"
+                value={formData.dietary}
+                onChange={e => setFormData({...formData, dietary: e.target.value})}
+                className="w-full bg-white/50 border-2 border-amber-900/10 rounded-lg p-3 focus:outline-none focus:border-amber-600 transition-colors text-amber-900 placeholder-amber-900/40"
+                placeholder="e.g. Nut allergy"
+              />
+            </div>
           </div>
 
           <button 

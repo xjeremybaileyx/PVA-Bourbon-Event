@@ -1,6 +1,49 @@
 
 import { Attendee } from '../types';
 
+/**
+ * GOOGLE APPS SCRIPT CODE FOR YOUR GOOGLE SHEET EXTENSION
+ * Copy and paste the following into your Google Apps Script editor:
+ * 
+ * function doGet() {
+ *   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+ *   const data = sheet.getDataRange().getValues();
+ *   const headers = data[0];
+ *   const rows = data.slice(1);
+ *   
+ *   const attendees = rows.map(row => {
+ *     let obj = {};
+ *     headers.forEach((header, i) => {
+ *       obj[header.toLowerCase().replace(/ /g, "")] = row[i];
+ *     });
+ *     return obj;
+ *   });
+ *   
+ *   return ContentService.createTextOutput(JSON.stringify(attendees))
+ *     .setMimeType(ContentService.MimeType.JSON);
+ * }
+ * 
+ * function doPost(e) {
+ *   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+ *   const data = JSON.parse(e.postData.contents);
+ *   
+ *   // Ensure your sheet headers match these keys:
+ *   // id, name, email, company, title, guests, dietarynotes, timestamp
+ *   sheet.appendRow([
+ *     data.id,
+ *     data.name,
+ *     data.email,
+ *     data.company,
+ *     data.title,
+ *     data.guests,
+ *     data.dietaryNotes || '',
+ *     data.timestamp
+ *   ]);
+ *   
+ *   return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
+ * }
+ */
+
 export interface DbConfig {
   url: string;
   enabled: boolean;
@@ -22,7 +65,9 @@ export const dbService = {
       return data.map((a: any) => ({
         ...a,
         guests: Number(a.guests),
-        timestamp: Number(a.timestamp)
+        timestamp: Number(a.timestamp),
+        // Ensure dietarynotes (lowercased by GAS example) maps back correctly
+        dietaryNotes: a.dietarynotes || a.dietaryNotes || ''
       })).sort((a: any, b: any) => b.timestamp - a.timestamp);
     } catch (error) {
       console.error('Sheets Sync Error:', error);
@@ -34,7 +79,6 @@ export const dbService = {
     if (!config.enabled || !config.url) return;
 
     try {
-      // Use text/plain for POST to avoid CORS preflight issues with Apps Script
       await fetch(config.url, {
         method: 'POST',
         mode: 'no-cors', 
@@ -43,7 +87,6 @@ export const dbService = {
         },
         body: JSON.stringify(attendee),
       });
-      // no-cors means we can't read the response, so we proceed assuming success
     } catch (error) {
       console.error('Sheets Save Error:', error);
       throw error;

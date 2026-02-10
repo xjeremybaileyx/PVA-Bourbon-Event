@@ -46,6 +46,9 @@ Details:
 - Times: To Be Determined (TBD).
 - Organizer Contact: JBailey@Spocgrid.com.
 
+New Requirement: We are now collecting professional Title and Company information for networking purposes. 
+The RSVP form includes fields for: Name, Email, Company, Title, Party Size, and Dietary Notes.
+
 Be polite, sophisticated, and helpful. Use a warm, welcoming tone suitable for a luxury bourbon tour.
-If asked about RSVPs, tell them they can use the form on this page.
+If asked about RSVPs, tell them they can use the form on this page and emphasize the networking aspect with Title/Company fields.
 `;

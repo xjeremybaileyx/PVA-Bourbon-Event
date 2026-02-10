@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Attendee } from '../types';
-import { Users, Clock, Download, Info, RefreshCw } from 'lucide-react';
+import { Users, Clock, Download, Info, RefreshCw, Building2 } from 'lucide-react';
 
 interface AttendeeListProps {
   attendees: Attendee[];
@@ -14,10 +14,12 @@ export const AttendeeList: React.FC<AttendeeListProps> = ({ attendees, onClear, 
   const downloadCSV = () => {
     if (attendees.length === 0) return;
     
-    const headers = ["Name", "Email", "Guests", "Dietary Notes", "Date"];
+    const headers = ["Name", "Email", "Company", "Title", "Guests", "Dietary Notes", "Date"];
     const rows = attendees.map(a => [
       `"${a.name}"`,
       `"${a.email}"`,
+      `"${a.company}"`,
+      `"${a.title}"`,
       a.guests,
       `"${a.dietaryNotes || ''}"`,
       new Date(a.timestamp).toLocaleDateString()
@@ -86,20 +88,34 @@ export const AttendeeList: React.FC<AttendeeListProps> = ({ attendees, onClear, 
           {attendees.map((attendee) => (
             <div 
               key={attendee.id}
-              className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-start justify-between group hover:bg-white/10 transition-colors animate-in slide-in-from-bottom-2 duration-300"
+              className="p-4 rounded-xl bg-white/5 border border-white/5 flex flex-col gap-2 group hover:bg-white/10 transition-colors animate-in slide-in-from-bottom-2 duration-300"
             >
-              <div>
-                <h4 className="text-sm font-semibold text-amber-100 group-hover:text-amber-400 transition-colors">
-                  {attendee.name}
-                </h4>
-                <div className="flex items-center gap-3 text-[10px] text-amber-100/60 mt-1">
-                  <span className="flex items-center gap-1">
-                    <Users size={10} /> Party of {attendee.guests}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock size={10} /> {new Date(attendee.timestamp).toLocaleDateString()}
-                  </span>
+              <div className="flex justify-between items-start">
+                <div>
+                  <h4 className="text-sm font-bold text-amber-100 group-hover:text-amber-400 transition-colors">
+                    {attendee.name}
+                  </h4>
+                  <div className="flex items-center gap-1.5 text-[10px] text-amber-200/60 font-medium">
+                    <Building2 size={10} />
+                    <span>{attendee.title}</span>
+                    <span className="opacity-40">@</span>
+                    <span>{attendee.company}</span>
+                  </div>
                 </div>
+                <div className="text-[10px] font-bold bg-amber-900/40 text-amber-200 px-2 py-0.5 rounded border border-amber-500/20">
+                  +{attendee.guests - 1} Guests
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-[9px] text-amber-100/30 uppercase tracking-widest mt-1 border-t border-white/5 pt-2">
+                <span className="flex items-center gap-1">
+                  <Clock size={8} /> {new Date(attendee.timestamp).toLocaleDateString()}
+                </span>
+                {attendee.dietaryNotes && (
+                  <span className="italic text-amber-400/50 truncate max-w-[120px]">
+                    Note: {attendee.dietaryNotes}
+                  </span>
+                )}
               </div>
             </div>
           ))}
