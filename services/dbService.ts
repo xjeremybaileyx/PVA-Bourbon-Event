@@ -2,19 +2,26 @@
 import { Attendee } from '../types';
 
 /**
- * GOOGLE APPS SCRIPT CODE FOR YOUR GOOGLE SHEET EXTENSION
- * Copy and paste the following into your Google Apps Script editor:
+ * UPDATED GOOGLE APPS SCRIPT CODE
  * 
  * function doGet() {
  *   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
  *   const data = sheet.getDataRange().getValues();
- *   const headers = data[0];
+ *   
+ *   if (data.length < 2) {
+ *     return ContentService.createTextOutput(JSON.stringify([]))
+ *       .setMimeType(ContentService.MimeType.JSON);
+ *   }
+ *   
+ *   const headers = data[0]; 
  *   const rows = data.slice(1);
  *   
  *   const attendees = rows.map(row => {
  *     let obj = {};
  *     headers.forEach((header, i) => {
- *       obj[header.toLowerCase().replace(/ /g, "")] = row[i];
+ *       if (header) {
+ *         obj[header.toString().trim()] = row[i];
+ *       }
  *     });
  *     return obj;
  *   });
@@ -24,23 +31,27 @@ import { Attendee } from '../types';
  * }
  * 
  * function doPost(e) {
- *   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
- *   const data = JSON.parse(e.postData.contents);
- *   
- *   // Ensure your sheet headers match these keys:
- *   // id, name, email, company, title, guests, dietarynotes, timestamp
- *   sheet.appendRow([
- *     data.id,
- *     data.name,
- *     data.email,
- *     data.company,
- *     data.title,
- *     data.guests,
- *     data.dietaryNotes || '',
- *     data.timestamp
- *   ]);
- *   
- *   return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
+ *   try {
+ *     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+ *     const data = JSON.parse(e.postData.contents);
+ *     
+ *     sheet.appendRow([
+ *       data.id || "",
+ *       data.name || "",
+ *       data.company || "",
+ *       data.title || "",
+ *       data.email || "",
+ *       data.guests || 1,
+ *       data.dietaryNotes || "",
+ *       data.timestamp || Date.now()
+ *     ]);
+ *     
+ *     return ContentService.createTextOutput("Success")
+ *       .setMimeType(ContentService.MimeType.TEXT);
+ *   } catch (err) {
+ *     return ContentService.createTextOutput("Error: " + err.message)
+ *       .setMimeType(ContentService.MimeType.TEXT);
+ *   }
  * }
  */
 
@@ -62,13 +73,19 @@ export const dbService = {
       if (!response.ok) throw new Error('Failed to fetch from Google Sheets');
       
       const data = await response.json();
+      
       return data.map((a: any) => ({
-        ...a,
-        guests: Number(a.guests),
-        timestamp: Number(a.timestamp),
-        // Ensure dietarynotes (lowercased by GAS example) maps back correctly
-        dietaryNotes: a.dietarynotes || a.dietaryNotes || ''
-      })).sort((a: any, b: any) => b.timestamp - a.timestamp);
+        id: String(a.id || ''),
+        name: String(a.name || ''),
+        company: String(a.company || ''),
+        title: String(a.title || ''),
+        email: String(a.email || ''),
+        guests: Number(a.guests || 0),
+        timestamp: Number(a.timestamp || 0),
+        dietaryNotes: a.dietaryNotes || a.dietarynotes || ''
+      }))
+      .filter((a: any) => a.id && a.name)
+      .sort((a: any, b: any) => b.timestamp - a.timestamp);
     } catch (error) {
       console.error('Sheets Sync Error:', error);
       throw error;
