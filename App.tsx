@@ -4,57 +4,66 @@ import { Header } from './components/Header';
 import { RSVPForm } from './components/RSVPForm';
 import { AttendeeList } from './components/AttendeeList';
 import { TourAssistant } from './components/TourAssistant';
-import { SyncSettings } from './components/SyncSettings';
 import { Attendee } from './types';
-import { TOUR_DETAILS } from './constants';
-import { MapPin, Table, RefreshCw, AlertCircle } from 'lucide-react';
-import { dbService, DbConfig } from './services/dbService';
+import { TOUR_DETAILS, SYNC_CONFIG } from './constants';
+import { MapPin, RefreshCw, AlertCircle, ShieldCheck, Globe } from 'lucide-react';
+import { dbService } from './services/dbService';
 
 const App: React.FC = () => {
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [dbConfig, setDbConfig] = useState<DbConfig>(() => {
-    const saved = localStorage.getItem('pva-bourbon-db-config');
-    // Default to the original structure but adapted for Sheets
-    return saved ? JSON.parse(saved) : { url: '', enabled: false };
-  });
 
-  const loadData = useCallback(async (config: DbConfig) => {
+  const isCloudEnabled = !!SYNC_CONFIG.url && SYNC_CONFIG.enabled;
+
+  const loadData = useCallback(async () => {
+    if (!isCloudEnabled) {
+      const saved = localStorage.getItem('pva-bourbon-tour-rsvps');
+      if (saved) setAttendees(JSON.parse(saved));
+      return;
+    }
+
     setIsSyncing(true);
-    setError(null);
     try {
-      if (config.enabled && config.url) {
-        const cloudData = await dbService.fetchAttendees(config);
-        setAttendees(cloudData);
-      } else {
-        const saved = localStorage.getItem('pva-bourbon-tour-rsvps');
-        if (saved) setAttendees(JSON.parse(saved));
-      }
+      const cloudData = await dbService.fetchAttendees(SYNC_CONFIG);
+      setAttendees(cloudData);
+      setError(null);
     } catch (e) {
       console.error("Load failed", e);
-      setError("Sync failed. Check your Script URL.");
+      setError("Sync connectivity issue.");
     } finally {
       setIsSyncing(false);
     }
-  }, []);
+  }, [isCloudEnabled]);
 
+  // Initial load
   useEffect(() => {
-    loadData(dbConfig);
-  }, [loadData, dbConfig]);
+    loadData();
+  }, [loadData]);
+
+  // Automatic Polling to keep the list updated for all users
+  useEffect(() => {
+    if (!isCloudEnabled) return;
+    
+    const interval = setInterval(() => {
+      loadData();
+    }, SYNC_CONFIG.pollingInterval);
+
+    return () => clearInterval(interval);
+  }, [isCloudEnabled, loadData]);
 
   const handleRSVP = async (newAttendee: Attendee) => {
-    if (dbConfig.enabled && dbConfig.url) {
+    if (isCloudEnabled) {
       setIsSyncing(true);
       try {
-        await dbService.saveAttendee(dbConfig, newAttendee);
-        await loadData(dbConfig); // Refresh from sheet
+        await dbService.saveAttendee(SYNC_CONFIG, newAttendee);
+        // Add locally for instant UI feedback
+        setAttendees(prev => [newAttendee, ...prev]);
+        // Refresh from sheet after a short delay to confirm
+        setTimeout(loadData, 2000);
       } catch (e) {
         console.error("Cloud save failed", e);
-        // Fallback: Save locally if cloud fails
-        const updated = [newAttendee, ...attendees];
-        setAttendees(updated);
-        localStorage.setItem('pva-bourbon-tour-rsvps', JSON.stringify(updated));
+        setError("Error saving to master list.");
       } finally {
         setIsSyncing(false);
       }
@@ -65,37 +74,25 @@ const App: React.FC = () => {
     }
   };
 
-  const handleClear = () => {
-    if (confirm("This will clear the list on THIS device. It won't delete rows from your Google Sheet.")) {
-      setAttendees([]);
-      localStorage.removeItem('pva-bourbon-tour-rsvps');
-    }
-  };
-
-  const updateConfig = (newConfig: DbConfig) => {
-    setDbConfig(newConfig);
-    localStorage.setItem('pva-bourbon-db-config', JSON.stringify(newConfig));
-  };
-
   const totalGuests = attendees.reduce((acc, curr) => acc + curr.guests, 0);
   const remainingSeats = TOUR_DETAILS.maxCapacity - totalGuests;
 
   return (
     <div className="min-h-screen text-amber-50 pb-20">
+      {/* Global Status Bar */}
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-end items-center gap-4 relative z-50">
         {error && (
-          <div className="flex items-center gap-2 text-red-400 text-[10px] font-bold uppercase bg-red-500/10 px-3 py-1.5 rounded-full border border-red-500/30 animate-pulse">
+          <div className="flex items-center gap-2 text-red-400 text-[10px] font-bold uppercase bg-red-500/10 px-3 py-1.5 rounded-full border border-red-500/30">
             <AlertCircle size={12} />
             {error}
           </div>
         )}
         <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${
-          dbConfig.enabled ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+          isCloudEnabled ? 'bg-green-500/10 border-green-500/30 text-green-400 shadow-[0_0_10px_rgba(74,222,128,0.1)]' : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
         }`}>
-          {isSyncing ? <RefreshCw size={12} className="animate-spin" /> : <Table size={12} />}
-          {dbConfig.enabled ? 'Google Sheets Sync' : 'Local Mode'}
+          {isSyncing ? <RefreshCw size={12} className="animate-spin" /> : (isCloudEnabled ? <ShieldCheck size={12} /> : <Globe size={12} />)}
+          {isCloudEnabled ? 'Live Master List' : 'Local Offline Mode'}
         </div>
-        <SyncSettings config={dbConfig} onSave={updateConfig} />
       </div>
 
       <Header />
@@ -130,9 +127,8 @@ const App: React.FC = () => {
         <div className="lg:col-span-4 h-full">
           <AttendeeList 
             attendees={attendees} 
-            onClear={handleClear} 
-            isCloud={dbConfig.enabled}
-            onRefresh={() => loadData(dbConfig)}
+            isCloud={isCloudEnabled}
+            onRefresh={loadData}
           />
         </div>
       </main>

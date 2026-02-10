@@ -24,6 +24,17 @@ export const TOUR_DETAILS = {
   contact: "JBailey@Spocgrid.com"
 };
 
+/**
+ * GLOBAL SYNC CONFIGURATION
+ * Paste your Google Apps Script Web App URL below.
+ * All users will automatically connect to this master list.
+ */
+export const SYNC_CONFIG = {
+  url: '', // PASTE YOUR GOOGLE SCRIPT URL HERE
+  enabled: true,
+  pollingInterval: 30000 // Refresh list every 30 seconds
+};
+
 export const SYSTEM_INSTRUCTION = `
 You are the PVA Bourbon Tour 2026 Assistant. Your goal is to help guests understand the details of the upcoming tour.
 Details:
