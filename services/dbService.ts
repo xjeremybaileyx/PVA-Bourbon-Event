@@ -2,17 +2,17 @@
 import { Attendee } from '../types';
 
 /**
- * UPDATED GOOGLE APPS SCRIPT CODE - COPY AND PASTE THIS
+ * V4 HEADER-AWARE GOOGLE APPS SCRIPT (RESILIENT VERSION)
  * 
  * function doGet() {
  *   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
  *   const data = sheet.getDataRange().getValues();
  *   if (data.length < 2) return ContentService.createTextOutput(JSON.stringify([])).setMimeType(ContentService.MimeType.JSON);
- *   const headers = data[0]; 
+ *   const headers = data[0].map(h => h.toString().trim()); 
  *   const rows = data.slice(1);
  *   const attendees = rows.map(row => {
  *     let obj = {};
- *     headers.forEach((header, i) => { if (header) obj[header.toString().trim()] = row[i]; });
+ *     headers.forEach((header, i) => { if (header) obj[header] = row[i]; });
  *     return obj;
  *   });
  *   return ContentService.createTextOutput(JSON.stringify(attendees)).setMimeType(ContentService.MimeType.JSON);
@@ -21,18 +21,26 @@ import { Attendee } from '../types';
  * function doPost(e) {
  *   try {
  *     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+ *     const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => h.toString().trim());
  *     const data = JSON.parse(e.postData.contents);
- *     // Order: A:id, B:name, C:company, D:title, E:email, F:guests, G:dietaryNotes, H:timestamp
- *     sheet.appendRow([
- *       data.id || "",
- *       data.name || "",
- *       data.company || "",
- *       data.title || "",
- *       data.email || "",
- *       data.guests || 1,
- *       data.dietaryNotes || "",
- *       data.timestamp || Date.now()
- *     ]);
+ *     
+ *     // This mapping ensures that no matter what the order of keys is in the JSON 
+ *     // or what the order of columns is in the Sheet, the data lands correctly.
+ *     const newRow = headers.map(header => {
+ *       switch(header) {
+ *         case 'id': return data.id || "";
+ *         case 'name': return data.name || "";
+ *         case 'company': return data.company || "";
+ *         case 'title': return data.title || "";
+ *         case 'email': return data.email || "";
+ *         case 'guests': return data.guests || 1;
+ *         case 'dietaryNotes': return data.dietaryNotes || "";
+ *         case 'timestamp': return data.timestamp || Date.now();
+ *         default: return "";
+ *       }
+ *     });
+ *     
+ *     sheet.appendRow(newRow);
  *     return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
  *   } catch (err) {
  *     return ContentService.createTextOutput("Error: " + err.message).setMimeType(ContentService.MimeType.TEXT);
@@ -59,17 +67,29 @@ export const dbService = {
       
       const data = await response.json();
       
-      return data.map((a: any) => ({
-        id: String(a.id || ''),
-        name: String(a.name || ''),
-        company: String(a.company || ''),
-        title: String(a.title || ''),
-        email: String(a.email || ''),
-        guests: Number(a.guests || 0),
-        timestamp: Number(a.timestamp || 0),
-        // Handle variations in header naming gracefully
-        dietaryNotes: a.dietaryNotes || a.dietarynotes || ''
-      }))
+      return data.map((a: any) => {
+        // Robust Date Parsing
+        let ts = Number(a.timestamp);
+        if (isNaN(ts) || ts < 1000000) {
+          const d = new Date(a.timestamp);
+          ts = isNaN(d.getTime()) ? Date.now() : d.getTime();
+        }
+
+        // Defensive Guest Count (prevents timestamps from being read as guest numbers)
+        let guestCount = Number(a.guests || 1);
+        if (guestCount > 100) guestCount = 1;
+
+        return {
+          id: String(a.id || ''),
+          name: String(a.name || ''),
+          company: String(a.company || ''),
+          title: String(a.title || ''),
+          email: String(a.email || ''),
+          guests: guestCount,
+          timestamp: ts,
+          dietaryNotes: String(a.dietaryNotes || a.dietarynotes || '')
+        };
+      })
       .filter((a: any) => a.id && a.name)
       .sort((a: any, b: any) => b.timestamp - a.timestamp);
     } catch (error) {
@@ -82,7 +102,6 @@ export const dbService = {
     if (!config.enabled || !config.url) return;
 
     try {
-      // Use text/plain to avoid preflight issues with Google Apps Script
       await fetch(config.url, {
         method: 'POST',
         mode: 'no-cors', 

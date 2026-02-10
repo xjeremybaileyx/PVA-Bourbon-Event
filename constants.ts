@@ -26,13 +26,12 @@ export const TOUR_DETAILS = {
 
 /**
  * GLOBAL SYNC CONFIGURATION
- * This URL is now hardcoded to ensure all devices (PC and Mobile)
- * automatically connect to the same master guest list.
+ * Updated with the user's new deployment URL for the fresh spreadsheet.
  */
 export const SYNC_CONFIG = {
-  url: 'https://script.google.com/macros/s/AKfycbzFJigauvC9bjPgfuv3wF8-Cc2JfWqohNq6q6S6UhXfy6oMza2yJiBZgWX-gf4MP6Zi/exec',
+  url: 'https://script.google.com/macros/s/AKfycbw4eNNriRJtdtB4-Lrr1VSAwza7LyL5Sg0RDlvr8oSrGgeRCA7t6XQybHVfBxOx2T09uQ/exec',
   enabled: true,
-  pollingInterval: 30000 // Refresh list every 30 seconds
+  pollingInterval: 30000 
 };
 
 export const SYSTEM_INSTRUCTION = `
@@ -40,15 +39,10 @@ You are the PVA Bourbon Tour 2026 Assistant. Your goal is to help guests underst
 Details:
 - Event: PVA Bourbon Tour 2026: The Ultimate Kentucky Triple Threat.
 - Date: Saturday, February 21, 2026.
-- Stops: Buffalo Trace (Heritage/Rare bottles), Woodford Reserve (Scenic/Copper stills), and Castle & Key (Castle/Limestone water).
-- Transportation: Dedicated 22-passenger shuttle through horse country.
-- Inclusions: Transportation, tours, and lunch at a local spot are included.
-- Times: To Be Determined (TBD).
-- Organizer Contact: JBailey@Spocgrid.com.
+- Stops: Buffalo Trace, Woodford Reserve, and Castle & Key.
+- Transportation: Dedicated 22-passenger shuttle.
+- Inclusions: Transportation, tours, and lunch.
 
-New Requirement: We are now collecting professional Title and Company information for networking purposes. 
-The RSVP form includes fields for: Name, Email, Company, Title, Party Size, and Dietary Notes.
-
-Be polite, sophisticated, and helpful. Use a warm, welcoming tone suitable for a luxury bourbon tour.
-If asked about RSVPs, tell them they can use the form on this page and emphasize the networking aspect with Title/Company fields.
+RSVP Fields: Name, Email, Company, Title, Party Size, and Dietary Notes.
+Be polite, sophisticated, and helpful.
 `;

@@ -36,6 +36,16 @@ export const AttendeeList: React.FC<AttendeeListProps> = ({ attendees, onClear, 
     document.body.removeChild(link);
   };
 
+  const formatDate = (ts: number) => {
+    try {
+      const d = new Date(ts);
+      if (isNaN(d.getTime()) || ts < 1000000000) return "Date TBD";
+      return d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+    } catch (e) {
+      return "Date TBD";
+    }
+  };
+
   return (
     <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-6 h-full flex flex-col">
       <div className="flex flex-col gap-4 mb-6">
@@ -55,7 +65,7 @@ export const AttendeeList: React.FC<AttendeeListProps> = ({ attendees, onClear, 
               </button>
             )}
             <span className="bg-amber-500/20 text-amber-400 text-xs px-2 py-1 rounded-full border border-amber-500/30">
-              {attendees.reduce((acc, curr) => acc + curr.guests, 0)} Guests
+              {attendees.reduce((acc, curr) => acc + (curr.guests > 100 ? 1 : curr.guests), 0)} Guests
             </span>
           </div>
         </div>
@@ -91,27 +101,27 @@ export const AttendeeList: React.FC<AttendeeListProps> = ({ attendees, onClear, 
               className="p-4 rounded-xl bg-white/5 border border-white/5 flex flex-col gap-2 group hover:bg-white/10 transition-colors animate-in slide-in-from-bottom-2 duration-300"
             >
               <div className="flex justify-between items-start">
-                <div>
-                  <h4 className="text-sm font-bold text-amber-100 group-hover:text-amber-400 transition-colors">
+                <div className="flex-1 min-w-0 pr-2">
+                  <h4 className="text-sm font-bold text-amber-100 group-hover:text-amber-400 transition-colors truncate">
                     {attendee.name}
                   </h4>
-                  <div className="flex items-center gap-1.5 text-[10px] text-amber-200/60 font-medium">
-                    <Building2 size={10} />
-                    <span>{attendee.title}</span>
-                    <span className="opacity-40">@</span>
-                    <span>{attendee.company}</span>
+                  <div className="flex items-center gap-1.5 text-[10px] text-amber-200/60 font-medium truncate">
+                    <Building2 size={10} className="flex-shrink-0" />
+                    <span className="truncate">{attendee.title}</span>
+                    <span className="opacity-40 flex-shrink-0">@</span>
+                    <span className="truncate">{attendee.company}</span>
                   </div>
                 </div>
-                <div className="text-[10px] font-bold bg-amber-900/40 text-amber-200 px-2 py-0.5 rounded border border-amber-500/20">
+                <div className="text-[10px] font-bold bg-amber-900/40 text-amber-200 px-2 py-0.5 rounded border border-amber-500/20 whitespace-nowrap">
                   +{attendee.guests - 1} Guests
                 </div>
               </div>
 
               <div className="flex items-center justify-between text-[9px] text-amber-100/30 uppercase tracking-widest mt-1 border-t border-white/5 pt-2">
                 <span className="flex items-center gap-1">
-                  <Clock size={8} /> {new Date(attendee.timestamp).toLocaleDateString()}
+                  <Clock size={8} /> {formatDate(attendee.timestamp)}
                 </span>
-                {attendee.dietaryNotes && (
+                {attendee.dietaryNotes && attendee.dietaryNotes.toLowerCase() !== 'none' && (
                   <span className="italic text-amber-400/50 truncate max-w-[120px]">
                     Note: {attendee.dietaryNotes}
                   </span>
