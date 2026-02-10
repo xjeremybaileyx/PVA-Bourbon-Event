@@ -24,18 +24,6 @@ export const TOUR_DETAILS = {
   contact: "JBailey@Spocgrid.com"
 };
 
-/**
- * GOOGLE SHEETS SYNC CONFIGURATION
- * 1. Create a Google Sheet with headers: id, name, email, guests, dietaryNotes, timestamp
- * 2. Deploy Apps Script as Web App (Access: Anyone)
- * 3. Paste the URL below to sync all devices automatically.
- */
-export const SYNC_CONFIG = {
-  url: '', // PASTE YOUR SCRIPT URL HERE (e.g., https://script.google.com/macros/s/.../exec)
-  enabled: true,
-  pollingInterval: 30000 // Refresh list every 30 seconds
-};
-
 export const SYSTEM_INSTRUCTION = `
 You are the PVA Bourbon Tour 2026 Assistant. Your goal is to help guests understand the details of the upcoming tour.
 Details:

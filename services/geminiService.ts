@@ -3,8 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import { SYSTEM_INSTRUCTION } from "../constants";
 
 export const getGeminiResponse = async (prompt: string, chatHistory: {role: 'user' | 'model', text: string}[]) => {
-  // Fix: Always use process.env.API_KEY directly for initialization as per guidelines
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
   
   // Transform our chat history into the format expected by the SDK
   const contents = chatHistory.map(msg => ({
@@ -30,7 +29,6 @@ export const getGeminiResponse = async (prompt: string, chatHistory: {role: 'use
       },
     });
 
-    // Fix: Access the .text property directly (do not call it as a method)
     return response.text || "I'm sorry, I couldn't process that. Please try again or contact J. Bailey directly.";
   } catch (error) {
     console.error("Gemini API Error:", error);
