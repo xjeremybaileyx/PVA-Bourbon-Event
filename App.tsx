@@ -15,13 +15,24 @@ const App: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Manage database configuration state, initializing from localStorage or constants
+  // Manage database configuration state
   const [dbConfig, setDbConfig] = useState<DbConfig>(() => {
+    // CRITICAL: If a global URL is hardcoded in constants, it MUST take precedence
+    // This ensures your phone/mobile gets the config automatically from the code.
+    if (SYNC_CONFIG.url) {
+      return { 
+        url: SYNC_CONFIG.url, 
+        enabled: SYNC_CONFIG.enabled 
+      };
+    }
+    
+    // Fallback to local storage only if no global URL is provided
     const saved = localStorage.getItem('pva-bourbon-db-config');
     if (saved) return JSON.parse(saved);
+    
     return { 
-      url: SYNC_CONFIG.url || '', 
-      enabled: SYNC_CONFIG.enabled 
+      url: '', 
+      enabled: false 
     };
   });
 

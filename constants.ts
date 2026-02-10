@@ -26,11 +26,11 @@ export const TOUR_DETAILS = {
 
 /**
  * GLOBAL SYNC CONFIGURATION
- * Paste your Google Apps Script Web App URL below.
- * All users will automatically connect to this master list.
+ * This URL is now hardcoded to ensure all devices (PC and Mobile)
+ * automatically connect to the same master guest list.
  */
 export const SYNC_CONFIG = {
-  url: '', // PASTE YOUR GOOGLE SCRIPT URL HERE
+  url: 'https://script.google.com/macros/s/AKfycbzFJigauvC9bjPgfuv3wF8-Cc2JfWqohNq6q6S6UhXfy6oMza2yJiBZgWX-gf4MP6Zi/exec',
   enabled: true,
   pollingInterval: 30000 // Refresh list every 30 seconds
 };
