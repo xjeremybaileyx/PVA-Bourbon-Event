@@ -1,0 +1,7 @@
+{
+  "name": "PVA Bourbon Tour 2026 RSVP Tool",
+  "description": "A luxury RSVP and guest management tool for the PVA Bourbon Tour 2026, featuring a bourbon-themed aesthetic and an AI tour assistant.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
